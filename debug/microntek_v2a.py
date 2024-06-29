@@ -15,7 +15,7 @@
 import pygame
 pygame.init()
 
-from pyviscas import visca
+from pyvisca import visca
 from threading import Thread
 from tkinter import messagebox
 from tkinter.simpledialog import askstring
@@ -115,12 +115,13 @@ def main(port='/dev/ttyUSB0'):
         
         # Set the max speed (pixel per 100 ms) of the X-Y joystick movement
         MAX_MOVEMENT_SPEED = 7
+        MAX_ZOOM_SPEED = 7
         
         # Set the delay time for movement speed
         MOVEMENT_REDUNDANT_DELAY = 0.01
         
         # Set the delay time after each movement, before stopping any continuous command
-        MOVEMENT_STOP_DELAY = 0.05
+        MOVEMENT_STOP_DELAY = 0.0005
         MOVEMENT_STOP_DELAY_LONG = 0.5
         
         # If val == 0.004, then the joystick is at rest.
@@ -188,12 +189,25 @@ def main(port='/dev/ttyUSB0'):
                 game_pad.SQUARE = 0  # --- blocking
             
             # Adjusting speed
-            if game_pad.R1 == 1 and game_pad.R2 == 0:
-                MAX_MOVEMENT_SPEED = 4
-            elif game_pad.R2 == 1:
-                MAX_MOVEMENT_SPEED = 7
-            else:
+            # ---
+            # Low speed
+            if game_pad.R1 == 0 and game_pad.R2 == 0:
+                MOVEMENT_STOP_DELAY = 0.0001
+                MOVEMENT_STOP_DELAY_LONG = 0.05
+                MAX_ZOOM_SPEED = 1
                 MAX_MOVEMENT_SPEED = 1
+            # Medium speed
+            if game_pad.R1 == 1:
+                MOVEMENT_STOP_DELAY = 0.05
+                MOVEMENT_STOP_DELAY_LONG = 0.1
+                MAX_ZOOM_SPEED = 4
+                MAX_MOVEMENT_SPEED = 3
+            # Max speed
+            if game_pad.R2 == 1:
+                MOVEMENT_STOP_DELAY = 0.3
+                MOVEMENT_STOP_DELAY_LONG = 0.5
+                MAX_ZOOM_SPEED = 7
+                MAX_MOVEMENT_SPEED = 14
         
             # Movement actions (left-right panning)
             if game_pad.ABS_JOY_L_X != JOYSTICK_REST_VAL:
@@ -226,8 +240,7 @@ def main(port='/dev/ttyUSB0'):
             # Movement actions (zoom)
             if game_pad.ABS_JOY_R_Y != 128:
                 val = game_pad.ABS_JOY_R_Y
-                i = get_speed(val, MAX_MOVEMENT_SPEED)
-                print('movspeed', MAX_MOVEMENT_SPEED)
+                i = get_speed(val, MAX_ZOOM_SPEED)
                 # Do the movement
                 if val >= JOYSTICK_MIN_VAL and val < JOYSTICK_REST_VAL:
                     cam.zoom_in(round(i))
