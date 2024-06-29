@@ -102,12 +102,13 @@ class Camera(object):
                 break
         '''
         msg = binascii.hexlify( self._output.read_all() )
-            # Remove bothering "b" prefix
-            msg = str(msg).replace('b\'', '').replace('\'', '')
-            #!DEBUG:
-            print(msg, len(msg))
-            if len(msg) == byte or byte == 0:
-                msg = '0'*byte
+        # Remove bothering "b" prefix
+        msg = str(msg).replace('b\'', '').replace('\'', '')
+        #!DEBUG:
+        print(msg, len(msg))
+        if len(msg) == byte or byte == 0:
+            msg = '0'*byte
+        
         return msg
     
     def reset_input_buffer(self):
