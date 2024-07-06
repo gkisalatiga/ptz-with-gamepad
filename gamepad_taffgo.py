@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # 
-# Control the VISCA PTZ camera using a TaffGO XBOX 360 gmepad
+# Control the VISCA PTZ camera using a TaffGO XBOX 360 gamepad
 # By Samarthya Lykamanuella (groaking)
 # Licensed under GPL-3.0
 # 
-# For Microntek USB Joystick types
+# For TaffGO XBOX 360 Joystick types
 # ---
 # Gamepad event listener using Python
 # -> SOURCE: https://github.com/zeth/inputs/blob/master/examples/gamepad_example.py
