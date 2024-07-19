@@ -306,7 +306,7 @@ if __name__ == "__main__":
 
     # Fail-safe mechanism
     # To exit the program, press Ctrl+C or Ctrl+D from your terminal.
-    while(true):
+    while(True):
         try:
             main(port)
         except:
