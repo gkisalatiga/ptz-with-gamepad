@@ -38,6 +38,7 @@ from colorama import Back
 from colorama import Fore
 from colorama import Style
 from pyvisca import visca
+from serial.serialutil import SerialException
 from tkinter.simpledialog import askstring
 import colorama as cr
 import numpy
@@ -74,6 +75,11 @@ def main(port='COM7'):
     JOYSTICK_REST_VAL = 0.000
     JOYSTICK_MIN_VAL = -1
     JOYSTICK_MAX_VAL = 1
+    
+    # Set the delay duration (in second) when attempting to turn on the PTZ.
+    # During this time, we should not write nor read any buffer as this would interfere with
+    # the port serial.
+    PTZ_POWER_ON_DELAY = 29.5
 
     # PTZ blocking -- so that we won't overflow the serial.
     block_up = False
@@ -104,6 +110,10 @@ def main(port='COM7'):
     block_set_5 = False
     block_set_6 = False
     block_set_7 = False
+    
+    # Blocking for turning on/off the PTZ camera.
+    block_power_on = False
+    block_power_off = False
 
     done = False
     init_state = True
@@ -348,6 +358,39 @@ def main(port='COM7'):
                     if block_set_7:
                         print("Dispatched command: OVERWRITING PRESET 7 UNBLOCKING")
                         block_set_7 = False
+                        
+            # Turning off the camera.
+            if _MENU == 1 and _START == 1:
+                if not block_power_off and cam.get_power() == 1:
+                    print("Dispatched command: POWER OFF")
+                    cam.power(0)
+                    block_power_off = True
+            elif _MENU == 0 or _START == 0:
+                if block_power_off:
+                    print("Dispatched command: POWER OFF UNBLOCKING")
+                    block_power_off = False
+            
+            # Turning on the camera.
+            if _MENU == 0 and _START == 1:
+                if not block_power_on and cam.get_power() == 0:
+                    print("Dispatched command: POWER ON")
+                    
+                    # Power on the camera.
+                    cam.power(1)
+                    
+                    # Do not send nor read any buffer until the PTZ is ready.
+                    print("[DEBUG] Starting the PTZ camera ...")
+                    time.sleep(PTZ_POWER_ON_DELAY)
+                    print("[DEBUG] PTZ Initialization complete!")
+                    
+                    # Attempt to close and re-initiate the PTZ object and regain port access.
+                    cam.reset_port()
+                    
+                    block_power_on = True
+            elif _MENU == 0 and _START == 0:
+                if block_power_on:
+                    print("Dispatched command: POWER ON UNBLOCKING")
+                    block_power_on = False
 
             # Adjusting speed: pan-tilt movement
             # ---
@@ -473,7 +516,9 @@ if __name__ == "__main__":
     while(True):
         try:
             main(port)
-        except:
+        except Exception as e:
+            print(f'[DEBUG] Error encountered: {e}')
+            
             # Wait for one second before continuing
             time.sleep(1)
             continue
